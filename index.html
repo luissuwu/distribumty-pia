@@ -36,7 +36,7 @@ p{margin:6px 0}code{background:var(--bg);padding:1px 5px;border-radius:5px}
 <span class="chip">Zona: Centro de Monterrey · radio 1.1 km</span><nav><button class="on" data-t="demo">Demo interactiva</button><button data-t="res">Resultados del proyecto</button><button data-t="info">Cómo funciona</button></nav></header>
 <main>
 <section class="tab on" id="demo"><div class="app"><aside class="side">
-<div class="card"><h3><span class="st">1</span>Definir paradas</h3><p class="hint">Mueve el mapa y haz zoom a cualquier zona de Monterrey, presiona «Descargar calles de esta vista» (máx. 8 km²) y luego haz clic para agregar paradas (la primera es el depósito). Clic sobre una parada la quita. Máximo 15.</p>
+<div class="card"><h3><span class="st">1</span>Definir paradas</h3><p class="hint">Mueve el mapa y haz zoom a cualquier zona de Monterrey, presiona «Descargar calles de esta vista» (máx. 6 km²) y luego haz clic para agregar paradas (la primera es el depósito). Clic sobre una parada la quita. Máximo 15.</p>
 <div class="seg" style="margin-bottom:8px"><input id="q" placeholder="Buscar colonia, calle o lugar" style="flex:3;min-width:0;font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink)"><button class="btn" id="bGo" style="flex:1">Ir</button></div><button class="btn pri" id="bDl" style="width:100%;margin-bottom:6px">⬇ Descargar calles de esta vista</button><div id="dlinfo" class="hint"></div><div class="row">Paradas aleatorias <b id="nv">12</b></div><input type="range" id="nr" min="4" max="15" value="12">
 <div class="seg" style="margin-top:8px"><button class="btn" id="bRand">Generar</button><button class="btn" id="bRep">Instancia del reporte</button><button class="btn" id="bClr">Borrar</button></div><div class="chk" id="gi"></div></div>
 <div class="card"><h3><span class="st">2</span>Configurar el problema</h3><div class="seg" id="crit"><button class="btn on" data-c="d">Distancia</button><button class="btn" data-c="t">Tiempo</button></div>
@@ -116,10 +116,16 @@ function drawGrid(){gridL.clearLayers();const has=new Set(G.edges.map(e=>e[0]*NN
 function loadGraph(g,fit){G=g;NN=g.nodes.length;indexGraph();geo();if(map){drawGrid();if(fit)map.fitBounds(L.latLngBounds(LL),{padding:[20,20]})}setStops(g.stops.slice())}
 function initMap(){if(typeof L==='undefined'){$('map').innerHTML='<p style="padding:20px">No se pudo cargar el mapa (Leaflet). Revisa tu conexión a internet.</p>';return}
  map=L.map('map',{preferCanvas:true}).setView(CEN,15);
- L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+ const BASES=[['Mapa claro (CARTO)','https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}],
+  ['OpenStreetMap','https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}],
+  ['Esri calles','https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri'}]];
+ const bl=BASES.map(([n,u,o])=>L.tileLayer(u,{maxZoom:19,...o}));let cur=0,terr=0;bl[0].addTo(map);
+ L.control.layers(Object.fromEntries(BASES.map((x,i)=>[x[0],bl[i]])),null,{position:'topright'}).addTo(map);
+ map.on('baselayerchange',e=>{cur=bl.indexOf(e.layer);terr=0});
+ bl.forEach((l,i)=>l.on('tileerror',()=>{if(i!==cur||++terr<6||cur>=bl.length-1)return;map.removeLayer(bl[cur]);cur++;terr=0;bl[cur].addTo(map);$('dlinfo').textContent='El mapa base no respondió; se cambió a '+BASES[cur][0]+'. Puedes elegir otro arriba a la derecha.'}));
  gridL=L.layerGroup().addTo(map);drawGrid();
  routeL=L.layerGroup().addTo(map);stopL=L.layerGroup().addTo(map);map.fitBounds(L.latLngBounds(LL),{padding:[20,20]});
- map.on('click',e=>onMapClick(e.latlng));$('showg').onchange=e=>e.target.checked?gridL.addTo(map):map.removeLayer(gridL)}
+ map.on('click',e=>onMapClick(e.latlng));setTimeout(()=>{map.invalidateSize();map.fitBounds(L.latLngBounds(LL),{padding:[20,20]})},250);if(window.ResizeObserver)new ResizeObserver(()=>map.invalidateSize()).observe($('map'));$('showg').onchange=e=>e.target.checked?gridL.addTo(map):map.removeLayer(gridL)}
 function nearestNode(la,lo){let b=-1,bd=1e9;for(let n=0;n<NN;n++){const d=Math.hypot((lo-LL[n][1])*kmLon,(la-LL[n][0])*110.57);if(d<bd){bd=d;b=n}}return[b,bd]}
 function onMapClick(p){const[b,bd]=nearestNode(p.lat,p.lng);if(bd>0.12){$('status').textContent='Haz clic dentro del área de calles descargada';return}
  const i=stops.indexOf(b);if(i>=0)stops.splice(i,1);else if(stops.length<15)stops.push(b);else{$('status').textContent='Máximo 15 puntos';return}setStops(stops.slice())}
@@ -190,15 +196,18 @@ function buildGraph(els,center){const nd=new Map(),ways=[];for(const e of els){i
  const g={latlon:keep.map(i=>ll[i]),nodes:keep.map(i=>[(ll[i][1]-lo0)*km,(ll[i][0]-la0)*110.57]),names:keep.map((i,k)=>[...nm[i]].slice(0,2).join(' y ')||'Cruce '+k),
   edges:E.filter(([a,b])=>map2[a]>=0&&map2[b]>=0).map(([a,b,l,s])=>[map2[a],map2[b],+l.toFixed(5),s]),stops:[]};
  let b=0,bd=1e9;g.latlon.forEach((p,i)=>{const d=Math.hypot(p[0]-center.lat,p[1]-center.lng);if(d<bd){bd=d;b=i}});g.stops=[b];return g}
-const OVP=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+const OVP=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function ovp(q){let last='sin respuesta';for(let ronda=0;ronda<2;ronda++){for(const u of OVP){try{$('dlinfo').textContent=`Descargando calles… (servidor ${OVP.indexOf(u)+1}/${OVP.length}${ronda?', reintento':''})`;
+ const ac=new AbortController(),t=setTimeout(()=>ac.abort(),30000);const rs=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});clearTimeout(t);
+ if(!rs.ok){last='HTTP '+rs.status;continue}const j=await rs.json();if(j&&j.elements&&j.elements.length)return j;last='respuesta vacía (servidor saturado o sin calles en la vista)'}catch(x){last=x.name==='AbortError'?'tiempo agotado':'sin conexión con el servidor'}}await sleep(2000)}throw new Error(last)}
 async function downloadView(){if(!map)return;const bb=map.getBounds(),s=bb.getSouth(),w=bb.getWest(),n=bb.getNorth(),e=bb.getEast(),km2=(n-s)*110.57*(e-w)*kmLon;
- if(km2>8){$('dlinfo').textContent=`La vista cubre ${km2.toFixed(1)} km². Acércate más (máx. 8 km²).`;return}
+ if(km2>6){$('dlinfo').textContent=`La vista cubre ${km2.toFixed(1)} km². Acércate más (máx. 6 km²).`;return}
  $('bDl').disabled=true;$('dlinfo').textContent=`Descargando calles de ${km2.toFixed(1)} km²…`;
  const q=`[out:json][timeout:40];way["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$"](${s},${w},${n},${e});(._;>;);out body qt;`;
- try{let js=null,err;for(const u of OVP){try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),45000);const rs=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});clearTimeout(t);if(!rs.ok)throw new Error('HTTP '+rs.status);js=await rs.json();break}catch(x){err=x}}
-  if(!js)throw err;const g=buildGraph(js.elements,map.getCenter());loadGraph(g,false);
+ try{const js=await ovp(q);const g=buildGraph(js.elements,map.getCenter());loadGraph(g,false);
   $('dlinfo').textContent=`Red cargada: ${NN} nodos y ${G.edges.length} tramos dirigidos. Agrega paradas con clic o presiona «Generar».`}
- catch(x){$('dlinfo').textContent='No se pudo descargar: '+(x.message||x)+'. Intenta de nuevo o acércate más.'}$('bDl').disabled=false}
+ catch(x){$('dlinfo').textContent='No se pudo descargar: '+(x.message||x)+'. Los servidores públicos a veces se saturan: espera unos segundos, acércate más (menos km²) y vuelve a intentar.'}$('bDl').disabled=false}
 async function goTo(){const q=$('q').value.trim();if(!q||!map)return;try{const rs=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=mx&q='+encodeURIComponent(q));const j=await rs.json();if(j.length)map.setView([+j[0].lat,+j[0].lon],16);else $('dlinfo').textContent='No se encontró ese lugar'}catch(x){$('dlinfo').textContent='Búsqueda no disponible'}}
 function bindDl(){$('bDl').onclick=downloadView;$('bGo').onclick=goTo;$('q').onkeydown=e=>{if(e.key==='Enter')goTo()}}
 addEventListener('resize',()=>{draw();redraw()});matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',()=>{draw();redraw()});
