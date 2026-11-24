@@ -122,32 +122,26 @@ function initMap() {
 
   map = L.map('map', { preferCanvas: true }).setView([25.6866, -100.3161], 12);
 
-  // REEMPLAZA CON TU CLAVE DE MAPTILER
-  const MAPTILER_KEY = 'XQOp2V959xLMhzbumsYh';
-
   const BASES = [
-    ['MapTiler Calles', `https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, {
-      maxNativeZoom: 19,
-      maxZoom: 20,
-      attribution: '&copy; MapTiler &copy; OpenStreetMap contributors'
-    }],
-    ['Esri Calles', 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-      maxNativeZoom: 17,
-      maxZoom: 20,
-      attribution: 'Tiles &copy; Esri &mdash; Datos &copy; OpenStreetMap contributors'
+    ['Carto Calles', 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap &copy; CARTO'
     }],
     ['OpenStreetMap', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxNativeZoom: 19,
-      maxZoom: 20,
+      maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
+    }],
+    ['Carto Claro', 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap &copy; CARTO'
     }]
   ];
 
-  let cur = MAPTILER_KEY === 'PEGA_AQUI_TU_API_KEY' ? 1 : 0;
-  let terr = 0;
-
+  let cur = 0, terr = 0;
   const bl = BASES.map(([n, u, o]) => L.tileLayer(u, o));
-  bl[cur].addTo(map);
+  bl[0].addTo(map);
 
   L.control.layers(Object.fromEntries(BASES.map((x, i) => [x[0], bl[i]])), null, { position: 'topright' }).addTo(map);
 
