@@ -157,11 +157,11 @@ function initMap() {
   routeL = L.layerGroup().addTo(map);
   stopL = L.layerGroup().addTo(map);
 
-  map.on('click', e => onMapClick(e.latlng));
-  setTimeout(() => map.invalidateSize(), 250);
-  if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe($('map'));
-  $('showg').onchange = e => e.target.checked ? gridL.addTo(map) : map.removeLayer(gridL);
-}
+  map.on('zoomend', () => {
+  if (!$('showg').checked) return;
+  if (map.getZoom() < 13) map.removeLayer(gridL);
+  else if (!map.hasLayer(gridL)) gridL.addTo(map);
+});
 function nearestNode(la,lo){let b=-1,bd=1e9;for(let n=0;n<NN;n++){const d=Math.hypot((lo-LL[n][1])*kmLon,(la-LL[n][0])*110.57);if(d<bd){bd=d;b=n}}return[b,bd]}
 function onMapClick(p){const[b,bd]=nearestNode(p.lat,p.lng);if(bd>0.12){$('status').textContent='Haz clic dentro del área de calles descargada';return}
  const i=stops.indexOf(b);if(i>=0)stops.splice(i,1);else if(stops.length<15)stops.push(b);else{$('status').textContent='Máximo 15 puntos';return}setStops(stops.slice())}
