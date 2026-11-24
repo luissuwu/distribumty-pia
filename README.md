@@ -2,7 +2,7 @@
 
 Proyecto integrador de algoritmos bioinspirados.
 
-- **Demo:** https://TU_USUARIO.github.io/NOMBRE_REPO/
+- **Demo:** [https://TU_USUARIO.github.io/NOMBRE_REPO/](https://luissuwu.github.io/rutabio-pia/)
 - **Código (Colab):** `RutaBio_PIA.ipynb`
 - **Reporte:** `Reporte_RutaBio.pdf`
 - **Datos de la corrida:** `resultados.json`
