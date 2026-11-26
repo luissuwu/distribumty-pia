@@ -116,13 +116,10 @@ function drawGrid(){gridL.clearLayers();const has=new Set(G.edges.map(e=>e[0]*NN
 function loadGraph(g,fit){G=g;NN=g.nodes.length;indexGraph();geo();if(map){drawGrid();if(fit)map.fitBounds(L.latLngBounds(LL),{padding:[20,20]})}setStops(g.stops.slice())}
 function initMap(){if(typeof L==='undefined'){$('map').innerHTML='<p style="padding:20px">No se pudo cargar el mapa (Leaflet). Revisa tu conexión a internet.</p>';return}
  map=L.map('map',{preferCanvas:true}).setView(CEN,15);
- const BASES=[['Mapa claro (CARTO)','https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}],
-  ['OpenStreetMap','https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}],
+ const BASES=[['OpenStreetMap','https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}],
   ['Esri calles','https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri'}]];
- const bl=BASES.map(([n,u,o])=>L.tileLayer(u,{maxZoom:19,...o}));let cur=0,terr=0;bl[0].addTo(map);
- L.control.layers(Object.fromEntries(BASES.map((x,i)=>[x[0],bl[i]])),null,{position:'topright'}).addTo(map);
- map.on('baselayerchange',e=>{cur=bl.indexOf(e.layer);terr=0});
- const ok=[0,0,0];bl.forEach((l,i)=>{l.on('tileload',()=>{ok[i]=1});l.on('tileerror',()=>{if(i!==cur||ok[i]||++terr<6||cur>=bl.length-1)return;map.removeLayer(bl[cur]);cur++;terr=0;bl[cur].addTo(map);$('dlinfo').textContent='El mapa base no respondió; se cambió a '+BASES[cur][0]+'. Puedes elegir otro arriba a la derecha.'})});
+ const bl=BASES.map(([n,u,o])=>L.tileLayer(u,{maxZoom:19,...o}));let cur=0,terr=0;const ok=[0,0];bl[0].addTo(map);
+ bl.forEach((l,i)=>{l.on('tileload',()=>{ok[i]=1});l.on('tileerror',()=>{if(i!==cur||ok[i]||++terr<6||cur>=bl.length-1)return;map.removeLayer(bl[cur]);cur++;terr=0;bl[cur].addTo(map);$('dlinfo').textContent='El mapa base no respondió; se cambió a '+BASES[cur][0]+'.'})});
  gridL=L.layerGroup().addTo(map);drawGrid();
  routeL=L.layerGroup().addTo(map);stopL=L.layerGroup().addTo(map);map.fitBounds(L.latLngBounds(LL),{padding:[20,20]});
  map.on('click',e=>onMapClick(e.latlng));setTimeout(()=>{map.invalidateSize();map.fitBounds(L.latLngBounds(LL),{padding:[20,20]})},250);if(window.ResizeObserver)new ResizeObserver(()=>map.invalidateSize()).observe($('map'));$('showg').onchange=e=>e.target.checked?gridL.addTo(map):map.removeLayer(gridL)}
