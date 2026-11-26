@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>RutaRegia · Optimización de rutas con ACO y PSO</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>DistribuMTY · Optimización de rutas con ACO y PSO</title>
 <style>
 :root{--bg:#f5f4fb;--card:#fff;--ink:#1d1a2f;--mut:#69667d;--line:#e1deef;--acc:#6d4aff;--aco:#7c3aed;--pso:#0d9488;--hib:#ea580c;--hib2:#db2777;--edge:#c9cddc;--map:#eef0f7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0b13;--card:#16141f;--ink:#ecebf5;--mut:#9a98b0;--line:#2a2738;--acc:#8b6dff;--aco:#a78bfa;--pso:#2dd4bf;--hib:#fb923c;--hib2:#f472b6;--edge:#34344a;--map:#0f0e18;color-scheme:dark}}
@@ -15,7 +15,7 @@ main{padding:0}section.tab:not(#demo){max-width:1500px;margin:0 auto;padding:16p
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}.card h3{margin:0 0 10px;font-size:14px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:7px 0;color:var(--mut);font-size:13px}.row b{color:var(--ink);font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--acc)}.seg{display:flex;gap:6px;flex-wrap:wrap}.seg .btn{flex:1;padding:6px 8px;font-size:13px}.seg .btn.on{background:var(--acc);color:var(--onacc,#fff);border-color:var(--acc)}
-canvas{width:100%;display:block;border-radius:12px;background:var(--map)}#map{cursor:crosshair}#conv,#cc{height:210px}
+#conv,#cc{width:100%;display:block;border-radius:12px;background:var(--map)}.leaflet-container canvas{background:transparent}#map{cursor:crosshair}#conv,#cc{height:210px}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kpi{background:var(--bg);border-radius:10px;padding:8px 10px}.kpi small{color:var(--mut);display:block;font-size:11px}.kpi b{font-size:17px;font-variant-numeric:tabular-nums}
 ol{margin:0;padding-left:20px;font-size:12.5px;max-height:240px;overflow:auto}li{margin:2px 0}
@@ -32,8 +32,8 @@ p{margin:6px 0}code{background:var(--bg);padding:1px 5px;border-radius:5px}
 .chk{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px;color:var(--mut)}
 @media(max-width:900px){.app{grid-template-columns:1fr;height:auto}.mapwrap{order:-1;height:62vh}.side{overflow:visible}}
 </style><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script></head><body>
-<header><div class="logo"><i>R</i><div><b>RutaRegia</b><small>Optimización de rutas con ACO y PSO · Centro de Monterrey</small></div></div>
-<span class="chip">Zona: Centro de Monterrey · radio 1.1 km</span><nav><button class="on" data-t="demo">Demo interactiva</button><button data-t="res">Resultados del proyecto</button><button data-t="info">Cómo funciona</button></nav></header>
+<header><div class="logo"><i>D</i><div><b>DistribuMTY</b><small>Centro de distribución · Optimización de rutas con ACO y PSO</small></div></div>
+<span class="chip">Monterrey, Nuevo León</span><nav><button class="on" data-t="demo">Demo interactiva</button><button data-t="res">Resultados del proyecto</button><button data-t="info">Cómo funciona</button></nav></header>
 <main>
 <section class="tab on" id="demo"><div class="app"><aside class="side">
 <div class="card"><h3><span class="st">1</span>Definir paradas</h3><p class="hint">Mueve el mapa y haz zoom a cualquier zona de Monterrey, presiona «Descargar calles de esta vista» (máx. 6 km²) y luego haz clic para agregar paradas (la primera es el depósito). Clic sobre una parada la quita. Máximo 15.</p>
@@ -55,7 +55,7 @@ p{margin:6px 0}code{background:var(--bg);padding:1px 5px;border-radius:5px}
 <div class="card"><h3>Convergencia promedio de las 15 corridas</h3><canvas id="cc"></canvas><div class="lg" id="cclg"></div></div>
 <div class="two"><div class="card"><h3>Búsqueda de hiperparámetros · PSO (24 configuraciones)</h3><div class="sc" id="t3"></div></div><div class="card"><h3>Búsqueda de hiperparámetros · ACO (24 configuraciones)</h3><div class="sc" id="t4"></div></div></div></section>
 
-<section class="tab" id="info"><div class="card"><h3>Qué hace RutaRegia</h3>
+<section class="tab" id="info"><div class="card"><h3>Qué hace DistribuMTY</h3>
 <p>Resuelve un problema de reparto (TSP asimétrico): salir del depósito, visitar todas las paradas una vez y regresar, minimizando <b>distancia</b> o <b>tiempo</b>. Las distancias entre paradas no son en línea recta: se calculan con <b>Dijkstra</b> sobre un grafo dirigido de calles que respeta los sentidos.</p>
 <p><b>PSO</b> usa <i>random keys</i> (cada partícula es un vector real que se ordena para obtener la ruta). <b>ACO</b> es Ant System con hormigas elitistas (feromona dirigida, visibilidad 1/d). Las variantes <b>+ 2-opt</b> mejoran cada ruta con búsqueda local. Para ≤15 paradas se muestra el <b>óptimo exacto</b> (Held–Karp) y la heurística del vecino más cercano como referencias.</p>
 <p><b>Cómo usarla:</b> (1) deja la instancia del reporte o genera paradas aleatorias, (2) elige criterio y algoritmo, (3) presiona Optimizar y observa cómo baja el costo, (4) usa «Comparar» para correr los cuatro algoritmos con las mismas paradas.</p>
@@ -114,70 +114,18 @@ const SEP=k=>Math.min(.45,Math.max(.12,.35*Math.sqrt(((x1-x0)*(y1-y0))/k)));
 function drawGrid(){gridL.clearLayers();const has=new Set(G.edges.map(e=>e[0]*NN+e[1]));
  L.polyline(G.edges.filter(([u,v])=>u<v||!has.has(v*NN+u)).map(([u,v])=>[LL[u],LL[v]]),{color:'#4b5563',weight:1,opacity:.5,interactive:false}).addTo(gridL)}
 function loadGraph(g,fit){G=g;NN=g.nodes.length;indexGraph();geo();if(map){drawGrid();if(fit)map.fitBounds(L.latLngBounds(LL),{padding:[20,20]})}setStops(g.stops.slice())}
-function initMap() {
-  if (typeof L === 'undefined') {
-    $('map').innerHTML = '<p style="padding:20px">No se pudo cargar Leaflet. Revisa tu conexión a internet.</p>';
-    return;
-  }
-
-  map = L.map('map', { preferCanvas: true }).setView([25.6866, -100.3161], 12);
-
-  const BASES = [
-    ['Carto Calles', 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
-    }],
-    ['OpenStreetMap', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }],
-    ['Carto Claro', 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
-    }]
-  ];
-
-  let cur = 0, terr = 0;
-  const bl = BASES.map(([n, u, o]) => L.tileLayer(u, o));
-  bl[0].addTo(map);
-
-  L.control.layers(Object.fromEntries(BASES.map((x, i) => [x[0], bl[i]])), null, { position: 'topright' }).addTo(map);
-
-  map.on('baselayerchange', e => {
-    cur = bl.indexOf(e.layer);
-    terr = 0;
-  });
-
-  bl.forEach((l, i) => l.on('tileerror', () => {
-    if (i !== cur || ++terr < 4 || cur >= bl.length - 1) return;
-    map.removeLayer(bl[cur]);
-    cur++;
-    terr = 0;
-    bl[cur].addTo(map);
-  }));
-
-  gridL = L.layerGroup();
-  drawGrid();
-  routeL = L.layerGroup().addTo(map);
-  stopL = L.layerGroup().addTo(map);
-
-  const syncGrid = () => {
-    if ($('showg').checked && map.getZoom() >= 13) {
-      if (!map.hasLayer(gridL)) gridL.addTo(map);
-    } else if (map.hasLayer(gridL)) {
-      map.removeLayer(gridL);
-    }
-  };
-  syncGrid();
-  map.on('zoomend', syncGrid);
-  $('showg').onchange = syncGrid;
-
-  map.on('click', e => onMapClick(e.latlng));
-  setTimeout(() => map.invalidateSize(), 250);
-  if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe($('map'));
-}
+function initMap(){if(typeof L==='undefined'){$('map').innerHTML='<p style="padding:20px">No se pudo cargar el mapa (Leaflet). Revisa tu conexión a internet.</p>';return}
+ map=L.map('map',{preferCanvas:true}).setView(CEN,15);
+ const BASES=[['Mapa claro (CARTO)','https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}],
+  ['OpenStreetMap','https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}],
+  ['Esri calles','https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri'}]];
+ const bl=BASES.map(([n,u,o])=>L.tileLayer(u,{maxZoom:19,...o}));let cur=0,terr=0;bl[0].addTo(map);
+ L.control.layers(Object.fromEntries(BASES.map((x,i)=>[x[0],bl[i]])),null,{position:'topright'}).addTo(map);
+ map.on('baselayerchange',e=>{cur=bl.indexOf(e.layer);terr=0});
+ const ok=[0,0,0];bl.forEach((l,i)=>{l.on('tileload',()=>{ok[i]=1});l.on('tileerror',()=>{if(i!==cur||ok[i]||++terr<6||cur>=bl.length-1)return;map.removeLayer(bl[cur]);cur++;terr=0;bl[cur].addTo(map);$('dlinfo').textContent='El mapa base no respondió; se cambió a '+BASES[cur][0]+'. Puedes elegir otro arriba a la derecha.'})});
+ gridL=L.layerGroup().addTo(map);drawGrid();
+ routeL=L.layerGroup().addTo(map);stopL=L.layerGroup().addTo(map);map.fitBounds(L.latLngBounds(LL),{padding:[20,20]});
+ map.on('click',e=>onMapClick(e.latlng));setTimeout(()=>{map.invalidateSize();map.fitBounds(L.latLngBounds(LL),{padding:[20,20]})},250);if(window.ResizeObserver)new ResizeObserver(()=>map.invalidateSize()).observe($('map'));$('showg').onchange=e=>e.target.checked?gridL.addTo(map):map.removeLayer(gridL)}
 function nearestNode(la,lo){let b=-1,bd=1e9;for(let n=0;n<NN;n++){const d=Math.hypot((lo-LL[n][1])*kmLon,(la-LL[n][0])*110.57);if(d<bd){bd=d;b=n}}return[b,bd]}
 function onMapClick(p){const[b,bd]=nearestNode(p.lat,p.lng);if(bd>0.12){$('status').textContent='Haz clic dentro del área de calles descargada';return}
  const i=stops.indexOf(b);if(i>=0)stops.splice(i,1);else if(stops.length<15)stops.push(b);else{$('status').textContent='Máximo 15 puntos';return}setStops(stops.slice())}
