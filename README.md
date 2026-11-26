@@ -1,10 +1,10 @@
-# RutaBio · PSO vs ACO en el TSP sobre calles reales del Centro de Monterrey
+# DistribuMTY · Centro de distribución: PSO vs ACO en rutas de reparto sobre calles reales de Monterrey
 
 Proyecto integrador de algoritmos bioinspirados.
 
-- **Demo:** [https://luissuwu.github.io/rutabio-pia/](https://luissuwu.github.io/rutabio-pia/)
-- **Código (Colab):** `RutaBio_PIA.ipynb` [https://colab.research.google.com/drive/1Cqf38eA3WHa_UYI29AjQsZEM63bp8qR2?usp=sharing]
-- **Reporte:** `Reporte_RutaBio.pdf`
+- **Demo:** https://TU_USUARIO.github.io/NOMBRE_REPO/
+- **Código (Colab):** `DistribuMTY_PIA.ipynb`
+- **Reporte:** `Reporte_DistribuMTY.pdf`
 - **Datos de la corrida:** `resultados.json`
 
-Calles: © colaboradores de OpenStreetMap (ODbL).
+Calles y mapa base: © colaboradores de OpenStreetMap (ODbL).
